@@ -23,4 +23,4 @@ Created while working as a Mobile Parts and Inventory Specialist, SuperStock add
 This project emerged from firsthand experience in the field, where traditional paper-based inventory systems proved inadequate for modern operational needs. SuperStock was developed as a practical solution to enhance efficiency and reliability in daily inventory management tasks.
 
 ---
-Developed with ❤️ by [Spencer Kelly](SpencerKelly.tech)
+Developed with ❤️ by [Spencer Kelly](https://spencerkelly.tech/)

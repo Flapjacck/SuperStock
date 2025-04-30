@@ -3,7 +3,6 @@ const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
 
 const app = express();
-const port = 3000;
 
 // Middleware
 app.use(cors());
@@ -56,6 +55,4 @@ app.post('/api/items', (req, res) => {
   );
 });
 
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
-});
+module.exports = app;

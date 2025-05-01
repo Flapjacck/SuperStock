@@ -1,3 +1,6 @@
+import { useEffect, useState } from "react";
+import { fetchStats, type Stats } from "../services/api";
+
 interface StatCardProps {
   title: string;
   value: string | number;
@@ -17,6 +20,35 @@ const StatCard = ({ title, value, icon }: StatCardProps) => (
 );
 
 export default function Dashboard() {
+  const [stats, setStats] = useState<Stats>({
+    totalItems: 0,
+    activeLocations: 0,
+    lowStockItems: 0,
+    pendingTransfers: 0,
+  });
+  const [error, setError] = useState<string>("");
+
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const data = await fetchStats();
+        setStats(data);
+      } catch (err) {
+        setError("Failed to load dashboard stats");
+        console.error(err);
+      }
+    };
+    loadStats();
+  }, []);
+
+  if (error) {
+    return (
+      <div className="p-6 max-w-7xl mx-auto">
+        <div className="bg-red-50 text-red-600 p-4 rounded-lg">{error}</div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <h1 className="text-3xl font-bold text-[#003366] mb-8">Dashboard</h1>
@@ -24,7 +56,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Total Items"
-          value="1,234"
+          value={stats.totalItems}
           icon={
             <svg
               className="w-8 h-8"
@@ -43,7 +75,7 @@ export default function Dashboard() {
         />
         <StatCard
           title="Active Locations"
-          value="8"
+          value={stats.activeLocations}
           icon={
             <svg
               className="w-8 h-8"
@@ -68,7 +100,7 @@ export default function Dashboard() {
         />
         <StatCard
           title="Low Stock Items"
-          value="12"
+          value={stats.lowStockItems}
           icon={
             <svg
               className="w-8 h-8"
@@ -87,7 +119,7 @@ export default function Dashboard() {
         />
         <StatCard
           title="Pending Transfers"
-          value="5"
+          value={stats.pendingTransfers}
           icon={
             <svg
               className="w-8 h-8"

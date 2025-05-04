@@ -1,61 +1,236 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
 interface InventoryItem {
-  id: number;
   name: string;
-  count: number | "N/A";
+  location: string;
+  uom: string;
+  minStock: number;
+  qtyOnHand?: number;
+}
+
+// Custom hook to manage inventory state with localStorage persistence
+function useInventoryState(yardId: string | undefined) {
+  // Load initial state
+  const [items, setItems] = useState<InventoryItem[]>(() => {
+    try {
+      const savedInventory = localStorage.getItem(`inventory-${yardId}`);
+      if (savedInventory) {
+        const savedItems = JSON.parse(savedInventory);
+        // Always use saved items if they exist, don't merge with defaults
+        return savedItems;
+      }
+    } catch (error) {
+      console.error("Error loading inventory:", error);
+    }
+    // If no saved inventory, use default items
+    return yardInventory[yardId || "peters-corner"] || [];
+  });
+
+  const [currentItemIndex, setCurrentItemIndex] = useState(() => {
+    try {
+      const savedIndex = localStorage.getItem(`currentIndex-${yardId}`);
+      if (savedIndex) {
+        const index = parseInt(savedIndex, 10);
+        return index < items.length ? index : 0;
+      }
+    } catch (error) {
+      console.error("Error loading current index:", error);
+    }
+    return 0;
+  });
+
+  // Save state synchronously
+  const saveState = useCallback(() => {
+    try {
+      localStorage.setItem(`inventory-${yardId}`, JSON.stringify(items));
+      localStorage.setItem(`currentIndex-${yardId}`, currentItemIndex.toString());
+    } catch (error) {
+      console.error("Error saving state:", error);
+    }
+  }, [items, currentItemIndex, yardId]);
+
+  // Save state whenever items or currentItemIndex changes
+  useEffect(() => {
+    saveState();
+  }, [items, currentItemIndex, saveState]);
+
+  // Function to update an item's quantity
+  const updateItemQuantity = useCallback((index: number, quantity: number | undefined) => {
+    setItems(prevItems => {
+      const newItems = [...prevItems];
+      if (quantity !== undefined) {
+        newItems[index] = { ...newItems[index], qtyOnHand: quantity };
+      }
+      localStorage.setItem(`inventory-${yardId}`, JSON.stringify(newItems));
+      return newItems;
+    });
+  }, [yardId]);
+
+  return {
+    items,
+    setItems,
+    currentItemIndex,
+    setCurrentItemIndex,
+    updateItemQuantity,
+    saveState
+  };
 }
 
 // Sample inventory items - in production this would come from an API or database
 const yardInventory: Record<string, InventoryItem[]> = {
-  "peters-corner": [
-    { id: 1, name: "Truck 1", count: 0 },
-    { id: 2, name: "Truck 2", count: 0 },
-    { id: 3, name: "Storage", count: 0 },
-  ],
+  "peters-corner": [],
   hazel: [
-    { id: 1, name: "Storage", count: 0 },
-    { id: 2, name: "Service", count: 0 },
-    { id: 3, name: "Tools", count: 0 },
+    { name: "Summer Gloves - M", location: "Office Seacan", uom: "Bag", minStock: 1 },
+    { name: "Summer Gloves - L", location: "Office Seacan", uom: "Bag", minStock: 1 },
+    { name: "Summer Gloves - XL", location: "Office Seacan", uom: "Bag", minStock: 1 },
+    { name: "Winter Gloves - M", location: "Office Seacan", uom: "Bag", minStock: 1 },
+    { name: "Winter Gloves - L", location: "Office Seacan", uom: "Bag", minStock: 1 },
+    { name: "Winter Gloves - XL", location: "Office Seacan", uom: "Bag", minStock: 1 },
+    { name: "Handles", location: "Office Seacan", uom: "x1", minStock: 10 },
+    { name: "Rotators", location: "Office Seacan", uom: "x1", minStock: 10 },
+    { name: "Duct Tape", location: "Office Seacan", uom: "Box", minStock: 2 },
+    { name: "Clear Glasses", location: "Office Seacan", uom: "Box", minStock: 3 },
+    { name: "Dark Glasses", location: "Office Seacan", uom: "Box", minStock: 3 },
+    { name: "Rubber Dipped Gloves", location: "Office Seacan", uom: "Bag", minStock: 3 },
+    { name: "Nitrile Gloves", location: "Office Seacan", uom: "Box", minStock: 2 },
+    { name: "Ear Plugs", location: "Office Seacan", uom: "Box", minStock: 2 },
+    { name: "N-95 Masks", location: "Office Seacan", uom: "Box", minStock: 2 },
+    { name: "Hammers", location: "Office Seacan", uom: "Box", minStock: 2 },
+    { name: "Tape Measures", location: "Office Seacan", uom: "Box", minStock: 2 },
+    { name: "Knives", location: "Office Seacan", uom: "Box", minStock: 2 },
+    { name: "Heat Gun", location: "Office Seacan", uom: "x1", minStock: 6 },
+    { name: "Booster Cable", location: "Office Seacan", uom: "x1", minStock: 5 },
+    { name: "Torch", location: "Office Seacan", uom: "x1", minStock: 6 },
+    { name: "Level", location: "Office Seacan", uom: "x1", minStock: 6 },
+    { name: "Multi-purpose Grease", location: "Office Seacan", uom: "x1", minStock: 6 },
+    { name: "Grease Gun", location: "Office Seacan", uom: "x1", minStock: 3 },
+    { name: "Hard Hats", location: "Office Seacan", uom: "x1", minStock: 12 },
+    { name: "Hard Hat Liner Mount", location: "Office Seacan", uom: "x1", minStock: 12 },
+    { name: "Clip on Hearing Protection", location: "Office Seacan", uom: "x1", minStock: 10 },
+    { name: "Faceshield", location: "Office Seacan", uom: "x1", minStock: 20 },
+    { name: "Faceshield Mount", location: "Office Seacan", uom: "x1", minStock: 10 },
+    { name: "Dig Lights", location: "Office Seacan", uom: "x1", minStock: 5 },
+    { name: "Dig Light Extension Cord", location: "Office Seacan", uom: "x1", minStock: 5 },
+    { name: "Tyvek Suit XL", location: "Office Seacan", uom: "Box", minStock: 1 },
+    { name: "Tyvek Suit XXL", location: "Office Seacan", uom: "Box", minStock: 1 },
+    { name: "Optime 105", location: "Office Seacan", uom: "x1", minStock: 10 },
+    { name: "PVC Gloves", location: "Office Seacan", uom: "Bag", minStock: 2 },
+    { name: "Splash Goggles", location: "Office Seacan", uom: "x1", minStock: 10 },
+    { name: "6x6 Tarps", location: "Office Seacan", uom: "x1", minStock: 3 },
+    { name: "Headlamps", location: "Office Seacan", uom: "x1", minStock: 12 },
+    { name: "Whip Checks", location: "Office Seacan", uom: "x1", minStock: 10 },
+    { name: "Root Saw", location: "Office Seacan", uom: "x1", minStock: 10 },
+    { name: "Hack Saw", location: "Office Seacan", uom: "x1", minStock: 10 },
+    { name: "4 in Clamp", location: "Office Seacan", uom: "x1", minStock: 20 },
+    { name: "6 in Clamp", location: "Office Seacan", uom: "x1", minStock: 20 },
+    { name: "8 in Clamp", location: "Office Seacan", uom: "x1", minStock: 20 },
+    { name: "Spill Kits", location: "Office Seacan", uom: "x1", minStock: 10 },
+    { name: "Bungie Cords", location: "Office Seacan", uom: "x1", minStock: 50 },
+    { name: "FIT-OC38F-SS", location: "Office Seacan", uom: "x1", minStock: 50 },
+    { name: "FIT-QCN38M-SS", location: "Office Seacan", uom: "x1", minStock: 50 },
+    { name: "FIT-QCN38F-SS", location: "Office Seacan", uom: "x1", minStock: 50 },
+    { name: "FIT-S1010-CB", location: "Office Seacan", uom: "x1", minStock: 50 },
+    { name: "FIT-S1022-CB", location: "Office Seacan", uom: "x1", minStock: 50 },
+    { name: "O-rings", location: "Office Seacan", uom: "x1", minStock: 100 },
+    { name: "5ft Wands", location: "Office Seacan", uom: "x1", minStock: 10 },
+    { name: "6ft Wands", location: "Office Seacan", uom: "x1", minStock: 10 },
+    { name: "2in Camlock - 3in Camlock", location: "Office Seacan", uom: "x1", minStock: 6 },
+    { name: "2.5in Camlock -3in Camlock", location: "Office Seacan", uom: "x1", minStock: 6 },
+    { name: "3in Camlock -1.5in Camlock", location: "Office Seacan", uom: "x1", minStock: 6 },
+    { name: "3in Camlock -Hydrant", location: "Office Seacan", uom: "x1", minStock: 6 },
+    { name: "Rope", location: "Office Seacan", uom: "Roll", minStock: 1 },
+    { name: "8-6 Reducer", location: "Office Seacan", uom: "x1", minStock: 6 },
+    { name: "6-4 Reducer", location: "Office Seacan", uom: "x1", minStock: 6 },
+    { name: "Foam Cannon", location: "Office Seacan", uom: "x1", minStock: 2 },
+    { name: "Muriatic Acid", location: "Office Seacan", uom: "x1", minStock: 2 },
+    { name: "Bleach", location: "Office Seacan", uom: "x1", minStock: 4 },
+    { name: "Glass Cleaner", location: "Office Seacan", uom: "x1", minStock: 4 },
+    { name: "Big Red Cleaner", location: "Office Seacan", uom: "x1", minStock: 4 },
+    { name: "Bioscrub", location: "Office Seacan", uom: "x1", minStock: 4 },
+    { name: "Spray Bottles", location: "Office Seacan", uom: "Box", minStock: 1 },
+    { name: "Pump Bottles", location: "Office Seacan", uom: "Box", minStock: 1 },
+    { name: "Orange Peeler", location: "Office Seacan", uom: "x1", minStock: 2 },
+    { name: "Rags", location: "Office Seacan", uom: "Bag", minStock: 2 },
+    { name: "Ex-con Concrete Remover", location: "Office Seacan", uom: "x1", minStock: 2 },
+    { name: "Axel Oil", location: "Office Seacan", uom: "x1", minStock: 6 },
+    { name: "WD-40", location: "Office Seacan", uom: "x1", minStock: 6 },
+    { name: "2 Stroke Oil", location: "Office Seacan", uom: "x1", minStock: 6 },
+    { name: "AA Batteries", location: "Office Seacan", uom: "Pack", minStock: 1 },
+    { name: "AAA Batteries", location: "Office Seacan", uom: "Pack", minStock: 1 },
+    { name: "Carabiners", location: "Office Seacan", uom: "Box", minStock: 2 },
+    { name: "Hitch Pins", location: "Office Seacan", uom: "x1", minStock: 15 },
+    { name: "Flusher Nozzle", location: "Office Seacan", uom: "x1", minStock: 6 },
+    { name: "Pencil Tip", location: "Office Seacan", uom: "x1", minStock: 6 },
+    { name: "Fan Tip", location: "Office Seacan", uom: "x1", minStock: 6 },
+    { name: "Shear Pins", location: "Office Seacan", uom: "x1", minStock: 10 },
+    { name: "Air Monitors", location: "Office Seacan", uom: "x1", minStock: 4 },
+    { name: "Radios", location: "Office Seacan", uom: "x1", minStock: 6 },
+    { name: "Chisel Paste", location: "Office Seacan", uom: "x1", minStock: 6 }
   ],
 };
 
 export function InventoryCounter() {
   const { yardId } = useParams<{ yardId: string }>();
   const navigate = useNavigate();
-  const [currentItemIndex, setCurrentItemIndex] = useState(0);
-  const [items, setItems] = useState(
-    yardInventory[yardId || "peters-corner"] || []
-  );
+  const { 
+    items, 
+    setItems,
+    currentItemIndex, 
+    setCurrentItemIndex,
+    updateItemQuantity,
+    saveState 
+  } = useInventoryState(yardId);
   const [inputValue, setInputValue] = useState("");
 
-  const handleNumberInput = (num: number | "N/A") => {
-    if (currentItemIndex >= items.length) return;
+  // Save state before unmounting
+  useEffect(() => {
+    return () => {
+      saveState();
+    };
+  }, [saveState]);
 
-    const newItems = [...items];
-    newItems[currentItemIndex].count = num;
-    setItems(newItems);
+  const handleNumberInput = (num: number) => {
+    if (currentItemIndex >= items.length) return;
+    
+    updateItemQuantity(currentItemIndex, num);
     setInputValue("");
 
     if (currentItemIndex < items.length - 1) {
-      setCurrentItemIndex((prev) => prev + 1);
+      setCurrentItemIndex(prev => prev + 1);
     }
+  };
+
+  const handleClearInput = () => {
+    setInputValue("");
   };
 
   const handlePrevious = () => {
     if (currentItemIndex > 0) {
-      setCurrentItemIndex((prev) => prev - 1);
+      saveState(); // Save state before navigating
+      setCurrentItemIndex(prev => prev - 1);
       setInputValue("");
     }
   };
 
   const handleBack = () => {
+    saveState(); // Save state before navigating
     navigate("/");
   };
 
   const currentItem = items[currentItemIndex];
+
+  // Clear inventory button in summary view
+  const handleClearInventory = () => {
+    if (window.confirm("Are you sure you want to clear all inventory counts? This cannot be undone.")) {
+      localStorage.removeItem(`inventory-${yardId}`);
+      localStorage.removeItem(`currentIndex-${yardId}`);
+      const freshItems = yardInventory[yardId || "peters-corner"] || [];
+      setItems(freshItems);
+      setCurrentItemIndex(0);
+    }
+  };
 
   return (
     <motion.div
@@ -116,9 +291,21 @@ export function InventoryCounter() {
 
           {/* Current item display */}
           <div className="bg-slate-800 rounded-lg p-6">
-            <h2 className="text-2xl font-bold mb-4">{currentItem?.name}</h2>
+            <div className="bg-slate-700 rounded-lg p-3 mb-4">
+              <p className="text-yellow-400 font-semibold">
+                Location: {currentItem?.location}
+              </p>
+            </div>
+            <h2 className="text-2xl font-bold mb-2">{currentItem?.name}</h2>
+            <div className="flex justify-between text-sm text-gray-400 mb-2">
+              <span>UOM: {currentItem?.uom}</span>
+              <span>Min Stock: {currentItem?.minStock}</span>
+            </div>
             <div className="text-4xl font-bold text-center p-4 bg-slate-900 rounded-lg mb-6">
-              {inputValue || currentItem?.count || "0"}
+              {inputValue ||
+                (currentItem?.qtyOnHand === undefined
+                  ? ""
+                  : currentItem.qtyOnHand)}
             </div>
 
             {/* Previous/Next navigation */}
@@ -151,10 +338,10 @@ export function InventoryCounter() {
                 </button>
               ))}
               <button
-                onClick={() => handleNumberInput("N/A")}
+                onClick={handleClearInput}
                 className="bg-amber-500 hover:bg-amber-400 text-slate-900 rounded-lg p-4 text-xl font-bold transition-colors"
               >
-                N/A
+                Clear
               </button>
               <button
                 onClick={() => setInputValue((prev) => prev + "0")}
@@ -175,22 +362,39 @@ export function InventoryCounter() {
           {currentItemIndex === items.length && (
             <div className="bg-slate-800 rounded-lg p-6">
               <h2 className="text-xl font-bold mb-4">Inventory Complete</h2>
-              <div className="space-y-2">
-                {items.map((item) => (
-                  <div key={item.id} className="flex justify-between">
-                    <span>{item.name}</span>
-                    <span className="font-bold text-yellow-400">
-                      {item.count}
-                    </span>
+              <div className="space-y-4">
+                {items.map((item: InventoryItem, index: number) => (
+                  <div key={index} className="bg-slate-700 rounded-lg p-3">
+                    <p className="text-yellow-400 font-semibold mb-1">
+                      {item.location}
+                    </p>
+                    <div className="flex justify-between mb-1">
+                      <span>{item.name}</span>
+                      <span className="font-bold text-yellow-400">
+                        {item.qtyOnHand}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm text-gray-400">
+                      <span>UOM: {item.uom}</span>
+                      <span>Min Stock: {item.minStock}</span>
+                    </div>
                   </div>
                 ))}
               </div>
-              <button
-                onClick={handleBack}
-                className="mt-6 w-full bg-yellow-400 hover:bg-yellow-300 text-slate-900 rounded-lg p-3 font-bold transition-colors"
-              >
-                Return to Yards
-              </button>
+              <div className="flex flex-col gap-3 mt-6">
+                <button
+                  onClick={handleBack}
+                  className="w-full bg-yellow-400 hover:bg-yellow-300 text-slate-900 rounded-lg p-3 font-bold transition-colors"
+                >
+                  Return to Yards
+                </button>
+                <button
+                  onClick={handleClearInventory}
+                  className="w-full bg-red-500 hover:bg-red-400 text-white rounded-lg p-3 font-bold transition-colors"
+                >
+                  Clear Inventory
+                </button>
+              </div>
             </div>
           )}
         </div>

@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
 export function LandingPage() {
@@ -54,10 +53,7 @@ export function LandingPage() {
         </h2>
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 relative">
           {/* Peters Corner Yard */}
-          <Link
-            to="/yard/peters-corner"
-            className="group relative rounded-lg overflow-hidden bg-slate-800 hover:bg-slate-700 transition-all duration-500 transform hover:-translate-y-1 hover:shadow-xl"
-          >
+          <div className="group relative rounded-lg overflow-hidden bg-slate-800 hover:bg-slate-700 transition-all duration-500 transform hover:-translate-y-1 hover:shadow-xl cursor-pointer">
             <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/0 via-yellow-400/5 to-yellow-400/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <div className="p-8 relative">
               <div className="flex justify-between items-center">
@@ -83,13 +79,10 @@ export function LandingPage() {
               </div>
               <div className="mt-4 h-1 w-0 bg-yellow-400/50 transition-all duration-300 group-hover:w-full rounded-full" />
             </div>
-          </Link>
+          </div>
 
           {/* Hazel Yard */}
-          <Link
-            to="/yard/hazel"
-            className="group relative rounded-lg overflow-hidden bg-slate-800 hover:bg-slate-700 transition-all duration-500 transform hover:-translate-y-1 hover:shadow-xl"
-          >
+          <div className="group relative rounded-lg overflow-hidden bg-slate-800 hover:bg-slate-700 transition-all duration-500 transform hover:-translate-y-1 hover:shadow-xl cursor-pointer">
             <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/0 via-yellow-400/5 to-yellow-400/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <div className="p-8 relative">
               <div className="flex justify-between items-center">
@@ -115,7 +108,7 @@ export function LandingPage() {
               </div>
               <div className="mt-4 h-1 w-0 bg-yellow-400/50 transition-all duration-300 group-hover:w-full rounded-full" />
             </div>
-          </Link>
+          </div>
         </div>
       </div>
     </motion.div>

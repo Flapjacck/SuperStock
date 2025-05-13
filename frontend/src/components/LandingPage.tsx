@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 export function LandingPage() {
+  const navigate = useNavigate();
   return (
     <motion.div
       className="slide-in bg-slate-900"
@@ -50,10 +52,15 @@ export function LandingPage() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 relative">
         <h2 className="text-2xl font-bold text-white mb-8 text-center">
           Select Yard Location
-        </h2>
+        </h2>{" "}
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 relative">
           {/* Peters Corner Yard */}
-          <div className="group relative rounded-lg overflow-hidden bg-slate-800 hover:bg-slate-700 transition-all duration-500 transform hover:-translate-y-1 hover:shadow-xl cursor-pointer">
+          <div
+            onClick={() =>
+              navigate("/inventory", { state: { yardName: "Peters Corner" } })
+            }
+            className="group relative rounded-lg overflow-hidden bg-slate-800 hover:bg-slate-700 transition-all duration-500 transform hover:-translate-y-1 hover:shadow-xl cursor-pointer"
+          >
             <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/0 via-yellow-400/5 to-yellow-400/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <div className="p-8 relative">
               <div className="flex justify-between items-center">
@@ -82,7 +89,12 @@ export function LandingPage() {
           </div>
 
           {/* Hazel Yard */}
-          <div className="group relative rounded-lg overflow-hidden bg-slate-800 hover:bg-slate-700 transition-all duration-500 transform hover:-translate-y-1 hover:shadow-xl cursor-pointer">
+          <div
+            onClick={() =>
+              navigate("/inventory", { state: { yardName: "Hazel" } })
+            }
+            className="group relative rounded-lg overflow-hidden bg-slate-800 hover:bg-slate-700 transition-all duration-500 transform hover:-translate-y-1 hover:shadow-xl cursor-pointer"
+          >
             <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/0 via-yellow-400/5 to-yellow-400/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <div className="p-8 relative">
               <div className="flex justify-between items-center">
